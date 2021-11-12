@@ -125,4 +125,21 @@ JOIN dst_project.aircrafts a ON s.aircraft_code=a.aircraft_code
 JOIN dst_project.flights f ON a.aircraft_code =f.aircraft_code
 WHERE f.departure_airport = 'AAQ'
 GROUP BY a.model
+/*6*/
+SELECT 
+f.flight_id, 
+f.arrival_airport, 
+f. departure_airport, 
+a.model,
+DATE_part('hour', f.scheduled_arrival-f.scheduled_departure) + DATE_part('minute', f.scheduled_arrival-f.scheduled_departure)/60 flight_time_hour,
+amount.total_amount
+FROM (select t.flight_id, sum(t.amount) total_amount
+     from  dst_project.ticket_flights  t 
+     group by t.flight_id) amount join dst_project.flights f on f.flight_id = amount.flight_id
+     left join dst_project.aircrafts a on f.aircraft_code= a.aircraft_code
+WHERE departure_airport = 'AAQ'
+  AND date_trunc('month', scheduled_departure) in ('2017-01-01','2017-02-01', '2017-12-01')
+  AND status not in ('Cancelled')
+group by f.flight_id, a.model, amount.total_amount
+
 
